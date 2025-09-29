@@ -6,8 +6,8 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
   try {
-    const existingUser = await db.query('SELECT * FROM signup_requests WHERE username = $1 OR email = $1', [username, email]);
-    const existingApproved = await db.query('SELECT * FROM users WHERE username = $1 OR email = $1', [username, email]);
+    const existingUser = await db.query('SELECT * FROM signup_requests WHERE username = $1 OR email = $2', [username, email]);
+    const existingApproved = await db.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
     if (existingUser.rows.length > 0 || existingApproved.rows.length > 0) {
       return res.status(400).json({ error: 'Username or email already exists' });
     }
@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/user', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
-  res.json({ username: req.session.user.username });
+  res.json({ id: req.session.user.id, username: req.session.user.username, role: req.session.user.role });
 });
 
 router.get('/logout', (req, res) => {

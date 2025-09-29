@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "A web app for sharing and managing photo and video albums",
   "main": "server.js",
+  
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:prod": "NODE_ENV=production node server.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop golden-memories",
+    "pm2:restart": "pm2 restart golden-memories"
   },
   "dependencies": {
     "aws-sdk": "^2.1474.0",

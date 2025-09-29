@@ -1,6 +1,9 @@
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config();
 const db = require('./models/db');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
@@ -10,13 +13,22 @@ const uploadRoutes = require('./routes/upload');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'change-me',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Set to true if using HTTPS
+  cookie: { secure: process.env.COOKIE_SECURE === 'true' }
 }));
 app.use(express.static('public'));
+
+// Ensure local uploads directory exists
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+try {
+	fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (err) {
+	console.error('Failed to create uploads directory:', err);
+}
 
 app.use('/auth', authRoutes);
 app.use('/admin', adminRoutes);
@@ -42,6 +54,13 @@ app.get('/admin-panel', (req, res) => {
   res.sendFile(__dirname + '/public/admin.html');
 });
 
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+app.get('/album/:id', (req, res) => {
+  if (!req.session.user) return res.redirect('/');
+  res.sendFile(__dirname + '/public/album.html');
+});
+
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
 });

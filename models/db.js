@@ -40,6 +40,19 @@ const pool = new Pool({
         url TEXT NOT NULL,
         type VARCHAR(20) NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS likes (
+        id SERIAL PRIMARY KEY,
+        media_id INTEGER REFERENCES media_files(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(media_id, user_id)
+      );
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        read BOOLEAN DEFAULT FALSE
+      );
     `);
     console.log('Tables created or already exist');
     const adminExists = await pool.query('SELECT * FROM users WHERE username = $1', ['admin']);

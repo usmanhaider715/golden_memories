@@ -10,10 +10,28 @@
 <body class="bg-gray-100 min-h-screen">
   <nav class="bg-blue-600 text-white p-4">
     <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">Golden Memories</h1>
-      <div>
+      <a href="/dashboard" class="flex items-center">
+        <img src="/logo.png" alt="Golden Memories" class="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <h1 class="text-xl font-bold hidden">Golden Memories</h1>
+      </a>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <button id="notificationsBtn" class="relative p-2 hover:bg-blue-700 rounded">
+            🔔
+            <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+          </button>
+          <div id="notificationsDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border hidden z-50">
+            <div class="p-3 border-b">
+              <h3 class="font-semibold text-gray-800">Notifications</h3>
+            </div>
+            <div id="notificationsList" class="max-h-64 overflow-y-auto">
+              <div class="p-3 text-gray-500 text-center">No notifications</div>
+            </div>
+          </div>
+        </div>
         <a href="/dashboard" class="text-white hover:underline">Dashboard</a>
-        <a href="/auth/logout" class="ml-4 text-white hover:underline">Logout</a>
+        <a href="/admin-panel" id="adminPanelBtn" class="text-white hover:underline hidden">Admin Panel</a>
+        <a href="/auth/logout" class="text-white hover:underline">Logout</a>
       </div>
     </div>
   </nav>
