@@ -44,8 +44,13 @@ const renderAlbums = (albums, container) => {
   albums.forEach(album => {
     const div = document.createElement('div');
     div.className = 'album bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow';
+    const locked = album.has_password && !(window.__me && (window.__me.role === 'admin' || window.__me.id === album.user_id));
+    const mediaBlock = album.cover_url
+      ? (album.cover_type === 'image' ? `<img src="${album.cover_url}" alt="${album.title}" class="w-full h-48 object-cover ${locked ? 'blur-sm' : ''}">`
+        : `<video src="${album.cover_url}" ${locked ? '' : 'controls'} class="w-full h-48 object-cover ${locked ? 'blur-sm' : ''}"></video>`)
+      : `<div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">No media</div>`;
     div.innerHTML = `
-      ${album.cover_url ? (album.cover_type === 'image' ? `<img src="${album.cover_url}" alt="${album.title}" class="w-full h-48 object-cover">` : `<video src="${album.cover_url}" controls class="w-full h-48 object-cover"></video>`) : `<div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">No media</div>`}
+      <div class="relative">${mediaBlock}${locked ? '<div class="absolute inset-0 flex items-center justify-center"><span class="bg-black/50 text-white px-2 py-1 rounded">🔒 Locked</span></div>' : ''}</div>
       <div class="p-4">
         <h3 class="text-lg font-semibold text-gray-800">${album.title}</h3>
         <p class="text-gray-600 mt-1 line-clamp-2">${album.description || 'No description'}</p>
@@ -54,7 +59,7 @@ const renderAlbums = (albums, container) => {
           <span>${album.media_count || 0} item(s)</span>
         </div>
         <div class="mt-3">
-          <button data-action="open" data-album="${album.id}" class="px-3 py-1 bg-gray-900 hover:bg-black text-white rounded text-sm">Open</button>
+          <button data-action="open" data-album="${album.id}" class="px-3 py-1 bg-gray-900 hover:bg-black text-white rounded text-sm">${locked ? 'Unlock' : 'Open'}</button>
         </div>
         <div class="mt-3 flex gap-2 hidden" data-actions>
           <button data-action="list" data-album="${album.id}" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm">Manage Media</button>
@@ -64,13 +69,18 @@ const renderAlbums = (albums, container) => {
         <div class="mt-3 hidden" data-media-list></div>
       </div>
     `;
-    div.querySelector('[data-action="open"]').addEventListener('click', () => {
-      window.location.href = `/album/${album.id}`;
+    div.querySelector('[data-action="open"]').addEventListener('click', async () => {
+      if (!locked) { window.location.href = `/album/${album.id}`; return; }
+      const pwd = prompt('Enter album password');
+      if (pwd == null) return;
+      const r = await fetch(`/search/album/${album.id}/access`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ password: pwd }) });
+      if (r.ok) window.location.href = `/album/${album.id}`; else alert('Incorrect password');
     });
     container.appendChild(div);
 
     // Permission-gated actions
     currentUserPromise.then(me => {
+      window.__me = me;
       const actions = div.querySelector('[data-actions]');
       if (!me) return; 
       const canManage = me.role === 'admin' || me.id === album.user_id;

@@ -19,6 +19,7 @@ router.get('/', async (req, res) => {
       params = [searchParam, userId];
       query = `
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
+               (a.album_password IS NOT NULL) AS has_password,
                c.cover_url, c.cover_type,
                COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
@@ -37,6 +38,7 @@ router.get('/', async (req, res) => {
       params = [searchParam];
       query = `
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
+               (a.album_password IS NOT NULL) AS has_password,
                c.cover_url, c.cover_type,
                COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
@@ -58,6 +60,7 @@ router.get('/', async (req, res) => {
       params = [userId];
       query = `
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
+               (a.album_password IS NOT NULL) AS has_password,
                c.cover_url, c.cover_type,
                COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
@@ -76,6 +79,7 @@ router.get('/', async (req, res) => {
       params = [];
       query = `
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
+               (a.album_password IS NOT NULL) AS has_password,
                c.cover_url, c.cover_type,
                COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
