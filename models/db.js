@@ -58,6 +58,7 @@ const pool = new Pool({
     `);
     // Ensure new columns exist when updating an existing DB
     await pool.query(`ALTER TABLE albums ADD COLUMN IF NOT EXISTS album_password TEXT`);
+    await pool.query(`ALTER TABLE media_files ADD COLUMN IF NOT EXISTS size_bytes BIGINT`);
     console.log('Tables created or already exist');
     const adminExists = await pool.query('SELECT * FROM users WHERE username = $1', ['admin']);
     if (adminExists.rows.length === 0) {
