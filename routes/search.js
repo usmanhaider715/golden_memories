@@ -18,20 +18,17 @@ router.get('/', async (req, res) => {
       // Profile view: search in user's albums only
       params = [searchParam, userId];
       query = `
-        WITH cover AS (
-          SELECT DISTINCT ON (album_id) album_id, url AS cover_url, type AS cover_type
-          FROM media_files
-          ORDER BY album_id, id ASC
-        ), counts AS (
-          SELECT album_id, COUNT(*)::int AS media_count
-          FROM media_files
-          GROUP BY album_id
-        )
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
-               c.cover_url, c.cover_type, COALESCE(cnt.media_count, 0) AS media_count
+               c.cover_url, c.cover_type,
+               COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
-        LEFT JOIN cover c ON c.album_id = a.id
-        LEFT JOIN counts cnt ON cnt.album_id = a.id
+        LEFT JOIN LATERAL (
+          SELECT url AS cover_url, type AS cover_type
+          FROM media_files m
+          WHERE m.album_id = a.id
+          ORDER BY m.id ASC
+          LIMIT 1
+        ) c ON true
         WHERE (a.title ILIKE $1 OR a.description ILIKE $1) AND a.user_id = $2
         ORDER BY a.upload_date DESC
       `;
@@ -39,20 +36,17 @@ router.get('/', async (req, res) => {
       // Dashboard view: search in all albums
       params = [searchParam];
       query = `
-        WITH cover AS (
-          SELECT DISTINCT ON (album_id) album_id, url AS cover_url, type AS cover_type
-          FROM media_files
-          ORDER BY album_id, id ASC
-        ), counts AS (
-          SELECT album_id, COUNT(*)::int AS media_count
-          FROM media_files
-          GROUP BY album_id
-        )
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
-               c.cover_url, c.cover_type, COALESCE(cnt.media_count, 0) AS media_count
+               c.cover_url, c.cover_type,
+               COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
-        LEFT JOIN cover c ON c.album_id = a.id
-        LEFT JOIN counts cnt ON cnt.album_id = a.id
+        LEFT JOIN LATERAL (
+          SELECT url AS cover_url, type AS cover_type
+          FROM media_files m
+          WHERE m.album_id = a.id
+          ORDER BY m.id ASC
+          LIMIT 1
+        ) c ON true
         WHERE (a.title ILIKE $1 OR a.description ILIKE $1)
         ORDER BY a.upload_date DESC
       `;
@@ -63,20 +57,17 @@ router.get('/', async (req, res) => {
       // Profile view: show user's albums only
       params = [userId];
       query = `
-        WITH cover AS (
-          SELECT DISTINCT ON (album_id) album_id, url AS cover_url, type AS cover_type
-          FROM media_files
-          ORDER BY album_id, id ASC
-        ), counts AS (
-          SELECT album_id, COUNT(*)::int AS media_count
-          FROM media_files
-          GROUP BY album_id
-        )
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
-               c.cover_url, c.cover_type, COALESCE(cnt.media_count, 0) AS media_count
+               c.cover_url, c.cover_type,
+               COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
-        LEFT JOIN cover c ON c.album_id = a.id
-        LEFT JOIN counts cnt ON cnt.album_id = a.id
+        LEFT JOIN LATERAL (
+          SELECT url AS cover_url, type AS cover_type
+          FROM media_files m
+          WHERE m.album_id = a.id
+          ORDER BY m.id ASC
+          LIMIT 1
+        ) c ON true
         WHERE a.user_id = $1
         ORDER BY a.upload_date DESC
       `;
@@ -84,20 +75,17 @@ router.get('/', async (req, res) => {
       // Dashboard view: show all albums
       params = [];
       query = `
-        WITH cover AS (
-          SELECT DISTINCT ON (album_id) album_id, url AS cover_url, type AS cover_type
-          FROM media_files
-          ORDER BY album_id, id ASC
-        ), counts AS (
-          SELECT album_id, COUNT(*)::int AS media_count
-          FROM media_files
-          GROUP BY album_id
-        )
         SELECT a.id, a.user_id, a.title, a.description, a.upload_date, a.is_public,
-               c.cover_url, c.cover_type, COALESCE(cnt.media_count, 0) AS media_count
+               c.cover_url, c.cover_type,
+               COALESCE((SELECT COUNT(*)::int FROM media_files mf WHERE mf.album_id = a.id), 0) AS media_count
         FROM albums a
-        LEFT JOIN cover c ON c.album_id = a.id
-        LEFT JOIN counts cnt ON cnt.album_id = a.id
+        LEFT JOIN LATERAL (
+          SELECT url AS cover_url, type AS cover_type
+          FROM media_files m
+          WHERE m.album_id = a.id
+          ORDER BY m.id ASC
+          LIMIT 1
+        ) c ON true
         ORDER BY a.upload_date DESC
       `;
     }
