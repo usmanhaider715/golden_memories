@@ -9,7 +9,11 @@ document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
     body: JSON.stringify(data)
   });
   const result = await res.json();
-  alert(result.message || result.error);
+  if (result.message) {
+    window.location = '/?signup=pending';
+  } else {
+    alert(result.error || 'Signup failed');
+  }
 });
 
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
@@ -191,7 +195,8 @@ document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
   const metadata = {
     title: formData.get('title'),
     description: formData.get('description'),
-    is_public: window.location.pathname === '/admin-panel'
+    is_public: window.location.pathname === '/admin-panel',
+    album_password: formData.get('album_password') || undefined
   };
   const albumRes = await fetch('/upload/album', {
     method: 'POST',
@@ -394,6 +399,12 @@ function setupNotifications() {
       } else {
         badge.classList.add('hidden');
         list.innerHTML = '<div class="p-3 text-gray-500 text-center">No notifications</div>';
+      }
+      // Mark as read after loading
+      if (notifications.length > 0) {
+        fetch('/search/notifications/read', { method: 'POST', credentials: 'same-origin' }).then(()=>{
+          badge.classList.add('hidden');
+        });
       }
     } catch (err) {
       console.error('Error loading notifications:', err);

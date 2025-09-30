@@ -8,10 +8,10 @@
   <script src="/js/app.js" defer></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+  <div class="bg-white/80 backdrop-blur p-6 rounded-xl shadow-lg w-full max-w-md">
     <div class="text-center mb-4">
-      <img src="/logo.png" alt="Golden Memories" class="h-16 md:h-20 w-auto mx-auto cursor-pointer hover:opacity-80 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-      <h1 class="text-2xl font-bold text-gray-800 hidden">Golden Memories</h1>
+      <img src="/logo.png" alt="Golden Memories" class="h-24 md:h-28 w-auto mx-auto cursor-pointer hover:opacity-80 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <h1 class="text-3xl font-bold text-gray-800 hidden">Golden Memories</h1>
     </div>
     <div id="loginSection" class="space-y-4">
       <h2 class="text-xl font-semibold text-gray-700">Login</h2>
@@ -24,7 +24,7 @@
           <label class="block text-gray-700">Password</label>
           <input type="password" name="password" class="w-full p-2 border rounded mt-1" required>
         </div>
-        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
       </form>
     </div>
     <div id="signupSection" class="mt-4 space-y-4 hidden">
@@ -63,6 +63,14 @@
       document.getElementById('toggleLogin').classList.add('hidden');
       document.getElementById('toggleSignup').classList.remove('hidden');
     });
+    // Show signup success notice if redirected
+    const params = new URLSearchParams(location.search);
+    if (params.get('signup') === 'pending') {
+      const box = document.createElement('div');
+      box.className = 'mb-4 p-3 rounded bg-amber-50 text-amber-800 border border-amber-200';
+      box.textContent = 'Signup submitted. Please wait until an admin approves your account, then sign in.';
+      document.querySelector('.bg-white\\/80, .bg-white').prepend(box);
+    }
   </script>
 </body>
 </html>

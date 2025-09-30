@@ -14,11 +14,16 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('trust proxy', 1);
+// Session: 5 minutes inactivity timeout with rolling renewal
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-me',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: process.env.COOKIE_SECURE === 'true' }
+  rolling: true,
+  cookie: {
+    secure: process.env.COOKIE_SECURE === 'true',
+    maxAge: 5 * 60 * 1000
+  }
 }));
 app.use(express.static('public'));
 

@@ -115,9 +115,29 @@ router.get('/album/:albumId/media', async (req, res) => {
   const albumRes = await db.query('SELECT * FROM albums WHERE id = $1', [albumId]);
   const album = albumRes.rows[0];
   if (!album) return res.status(404).send('Album not found');
-  // Allow any logged-in user to view album media
+  // Enforce password if set and user is not owner/admin
+  if (album.album_password && !(req.session.user.role === 'admin' || req.session.user.id === album.user_id || req.session.allowedAlbums?.includes(album.id))) {
+    return res.status(403).json({ requiresPassword: true });
+  }
   const media = (await db.query('SELECT id, url, type FROM media_files WHERE album_id = $1 ORDER BY id ASC', [albumId])).rows;
   res.json({ album: { id: album.id, title: album.title, description: album.description, is_public: album.is_public, user_id: album.user_id }, media });
+});
+
+// Verify album password and grant access in session
+router.post('/album/:albumId/access', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  const { password } = req.body;
+  const albumId = req.params.albumId;
+  const albumRes = await db.query('SELECT id, user_id, album_password FROM albums WHERE id = $1', [albumId]);
+  const album = albumRes.rows[0];
+  if (!album) return res.status(404).send('Album not found');
+  if (!album.album_password) return res.json({ granted: true });
+  if (password && password === album.album_password) {
+    if (!req.session.allowedAlbums) req.session.allowedAlbums = [];
+    if (!req.session.allowedAlbums.includes(album.id)) req.session.allowedAlbums.push(album.id);
+    return res.json({ granted: true });
+  }
+  res.status(401).json({ granted: false });
 });
 
 // Like/unlike a media item
@@ -157,6 +177,13 @@ router.get('/notifications', async (req, res) => {
   if (!req.session.user) return res.status(401).send('Unauthorized');
   const notifications = (await db.query('SELECT id, message, created_at, read FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50', [req.session.user.id])).rows;
   res.json(notifications);
+});
+
+// Mark notifications as read
+router.post('/notifications/read', async (req, res) => {
+  if (!req.session.user) return res.status(401).send('Unauthorized');
+  await db.query('UPDATE notifications SET read = TRUE WHERE user_id = $1 AND read = FALSE', [req.session.user.id]);
+  res.sendStatus(200);
 });
 
 module.exports = router;

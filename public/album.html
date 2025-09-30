@@ -50,6 +50,16 @@
         </div>
         <button onclick="history.back()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded">← Back</button>
       </div>
+      <div id="passwordGate" class="mb-6 hidden">
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded">
+          <p class="text-amber-700 mb-2">This album is protected. Enter password to view.</p>
+          <div class="flex gap-2">
+            <input id="albumPasswordInput" type="password" class="border rounded p-2 flex-1" placeholder="Album password">
+            <button id="albumPasswordSubmit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Unlock</button>
+          </div>
+          <p id="albumPasswordError" class="text-red-600 text-sm mt-2 hidden">Incorrect password. Try again.</p>
+        </div>
+      </div>
       
       <div id="mediaGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <!-- Media items will be loaded here -->
@@ -92,6 +102,14 @@
       const albumId = window.location.pathname.split('/').pop();
       try {
         const res = await fetch(`/search/album/${albumId}/media`, { credentials: 'same-origin' });
+        if (res.status === 403) {
+          const data = await res.json();
+          if (data && data.requiresPassword) {
+            document.getElementById('passwordGate').classList.remove('hidden');
+            return;
+          }
+          throw new Error('Access denied');
+        }
         if (!res.ok) throw new Error('Failed to load album');
         
         const data = await res.json();
@@ -108,6 +126,19 @@
         document.getElementById('noMedia').classList.remove('hidden');
       }
     }
+
+    // Password submit
+    document.getElementById('albumPasswordSubmit').addEventListener('click', async () => {
+      const pwd = document.getElementById('albumPasswordInput').value;
+      const albumId = window.location.pathname.split('/').pop();
+      const r = await fetch(`/search/album/${albumId}/access`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ password: pwd }) });
+      if (r.ok) {
+        document.getElementById('passwordGate').classList.add('hidden');
+        loadAlbum();
+      } else {
+        document.getElementById('albumPasswordError').classList.remove('hidden');
+      }
+    });
 
     function renderMedia() {
       const grid = document.getElementById('mediaGrid');

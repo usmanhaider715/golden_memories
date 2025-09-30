@@ -37,7 +37,7 @@ router.get('/users', async (req, res) => {
   res.json(users);
 });
 
-// Delete user and all their data (admin only)
+// Delete user and all their data (admin only) — allowed anytime
 router.delete('/users/:id', async (req, res) => {
   if (!req.session.user || req.session.user.role !== 'admin') return res.status(403).send('Forbidden');
   const { id } = req.params;

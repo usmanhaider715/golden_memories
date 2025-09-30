@@ -32,13 +32,15 @@ const pool = new Pool({
         title VARCHAR(100) NOT NULL,
         description TEXT,
         upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        is_public BOOLEAN DEFAULT FALSE
+        is_public BOOLEAN DEFAULT FALSE,
+        album_password TEXT
       );
       CREATE TABLE IF NOT EXISTS media_files (
         id SERIAL PRIMARY KEY,
         album_id INTEGER REFERENCES albums(id),
         url TEXT NOT NULL,
-        type VARCHAR(20) NOT NULL
+        type VARCHAR(20) NOT NULL,
+        size_bytes BIGINT
       );
       CREATE TABLE IF NOT EXISTS likes (
         id SERIAL PRIMARY KEY,
@@ -54,6 +56,8 @@ const pool = new Pool({
         read BOOLEAN DEFAULT FALSE
       );
     `);
+    // Ensure new columns exist when updating an existing DB
+    await pool.query(`ALTER TABLE albums ADD COLUMN IF NOT EXISTS album_password TEXT`);
     console.log('Tables created or already exist');
     const adminExists = await pool.query('SELECT * FROM users WHERE username = $1', ['admin']);
     if (adminExists.rows.length === 0) {
